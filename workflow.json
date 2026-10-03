@@ -1,0 +1,193 @@
+{
+  "name": "AI news to X automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "ffc7cb01-b458-4bcb-a6ae-2377efff04ce",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "a792394d-1625-4c17-86db-6fd803cecf8a",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Title: {{ $json.title }}\nLink: {{ $json.link }}\nDescription: {{ $json.content }}\nAnalyze this AI news article and create a concise X post about it.\n\nRequirements:\n- Focus on the most important information.\n- Keep the post clear and engaging.\n- Do not invent facts.\n- Include the article link.\n- Keep it within the normal X post length.\n\nAdditional requirements:\n- Write only the final X post.\n- Keep it concise and easy to read.\n- Stay within X's character limit.\n- Do not add labels such as \"Post:\" or \"X Post:\".\n- Do not use markdown.\n- Include the original article link.\n- Do not invent facts or information not present in the article.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        -32
+      ],
+      "id": "6110a266-8fa8-4b1f-b951-726ad5ecac3a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        208,
+        224
+      ],
+      "id": "b77eb070-f59d-4fae-9c4e-bd8fdb41935c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "fIYVtV6ZnzKlKLQG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -64
+      ],
+      "id": "dd3ae472-0413-49a0-8ab2-760adafeb332",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"post\": \"AI-generated X post goes here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        224
+      ],
+      "id": "6e700f0c-50e0-4c94-b904-872272bf7897",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        816,
+        -32
+      ],
+      "id": "a7e8d1ec-a178-4ebb-92b9-4a979fb96c04",
+      "name": "Create Tweet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create Tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "da185ee6-db47-40bb-ac68-de82b90404a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c40cdd84973239427f92be47594af8e702df8996ea4804ef780a66e71ea9e51d"
+  },
+  "nodeGroups": [],
+  "id": "HpboTy0qCEhbgRrU",
+  "tags": []
+}
